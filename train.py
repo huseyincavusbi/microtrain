@@ -65,6 +65,7 @@ class Hyperparameters:
     mlx_eager_eval: bool = bool(int(os.environ.get("MLX_EAGER_EVAL", "1")))
     skip_val: bool = bool(int(os.environ.get("SKIP_VAL", "0")))
     val_max_tokens: int = int(os.environ.get("VAL_MAX_TOKENS", "0"))
+    val_log_every: int = int(os.environ.get("VAL_LOG_EVERY", "25"))
     warmup_steps: int = int(os.environ.get("WARMUP_STEPS", 20))
     warmdown_iters: int = int(os.environ.get("WARMDOWN_ITERS", 1200))
     max_wallclock_seconds: float = float(os.environ.get("MAX_WALLCLOCK_SECONDS", 600.0))
@@ -810,7 +811,7 @@ def eval_val(
         total_tokens += chunk_token_count
         total_bytes += float(bytes_np.astype(np.float64).sum())
         if log_fn is not None and total_batches > 1 and (
-            batch_idx == 1 or batch_idx == total_batches or batch_idx % 25 == 0
+            args.val_log_every > 0 and (batch_idx == 1 or batch_idx == total_batches or batch_idx % args.val_log_every == 0)
         ):
             log_fn(f"val_progress:{batch_idx}/{total_batches}")
     val_loss = total_loss_sum / total_tokens
