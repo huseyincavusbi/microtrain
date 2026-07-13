@@ -63,6 +63,7 @@ class Hyperparameters:
     # graph buildup across accumulation steps. Keeps peak memory low on 16GB machines.
     # Disable on 32GB+ unified memory for better throughput (MLX_EAGER_EVAL=0).
     mlx_eager_eval: bool = bool(int(os.environ.get("MLX_EAGER_EVAL", "1")))
+    skip_val: bool = bool(int(os.environ.get("SKIP_VAL", "0")))
     warmup_steps: int = int(os.environ.get("WARMUP_STEPS", 20))
     warmdown_iters: int = int(os.environ.get("WARMDOWN_ITERS", 1200))
     max_wallclock_seconds: float = float(os.environ.get("MAX_WALLCLOCK_SECONDS", 600.0))
@@ -978,20 +979,21 @@ def main() -> None:
                 log(f"warmup_step:{warmup_step + 1}/{args.warmup_steps}")
 
         # Prime the standalone eval graph once too. It is compiled separately from value_and_grad.
-        val_batch_tokens = args.val_batch_size // args.grad_accum_steps
-        if val_batch_tokens < args.train_seq_len:
-            raise ValueError(
-                "VAL_BATCH_SIZE must provide at least one sequence; "
-                f"got VAL_BATCH_SIZE={args.val_batch_size}, GRAD_ACCUM_STEPS={args.grad_accum_steps}, "
-                f"TRAIN_SEQ_LEN={args.train_seq_len}"
-            )
-        warm_val_seqs = min(val_batch_tokens // args.train_seq_len, (val_tokens.size - 1) // args.train_seq_len)
-        warm_chunk = val_tokens[: warm_val_seqs * args.train_seq_len + 1]
-        x_val = mx.array(warm_chunk[:-1].reshape(-1, args.train_seq_len), dtype=mx.int32)
-        y_val = mx.array(warm_chunk[1:].reshape(-1, args.train_seq_len), dtype=mx.int32)
-        warm_val_loss = compiled_loss(x_val, y_val)
-        mx.eval(warm_val_loss)
-        mx.synchronize()
+        if not args.skip_val:
+            val_batch_tokens = args.val_batch_size // args.grad_accum_steps
+            if val_batch_tokens < args.train_seq_len:
+                raise ValueError(
+                    "VAL_BATCH_SIZE must provide at least one sequence; "
+                    f"got VAL_BATCH_SIZE={args.val_batch_size}, GRAD_ACCUM_STEPS={args.grad_accum_steps}, "
+                    f"TRAIN_SEQ_LEN={args.train_seq_len}"
+                )
+            warm_val_seqs = min(val_batch_tokens // args.train_seq_len, (val_tokens.size - 1) // args.train_seq_len)
+            warm_chunk = val_tokens[: warm_val_seqs * args.train_seq_len + 1]
+            x_val = mx.array(warm_chunk[:-1].reshape(-1, args.train_seq_len), dtype=mx.int32)
+            y_val = mx.array(warm_chunk[1:].reshape(-1, args.train_seq_len), dtype=mx.int32)
+            warm_val_loss = compiled_loss(x_val, y_val)
+            mx.eval(warm_val_loss)
+            mx.synchronize()
 
         train_loader = TokenLoader(args.train_files, log_fn=log, dataset_name=dataset_name)
 
@@ -1002,7 +1004,7 @@ def main() -> None:
     step = 0
     while True:
         last_step = step == args.iterations or (stop_after_step is not None and step >= stop_after_step)
-        if last_step or (args.val_loss_every > 0 and step % args.val_loss_every == 0):
+        if not args.skip_val and (last_step or (args.val_loss_every > 0 and step % args.val_loss_every == 0)):
             train_time_ms += 1000.0 * (time.perf_counter() - t0)
             # Validation always scans the same fixed full validation split.
             val_loss, val_bpb = eval_val(
@@ -1085,19 +1087,22 @@ def main() -> None:
         quant_blob_disk = f.read()
     quant_flat = dequantize_state_dict_int8(pickle.loads(zlib.decompress(quant_blob_disk)))
     model.update(tree_unflatten(list(quant_flat.items())))
-    q_t0 = time.perf_counter()
-    q_val_loss, q_val_bpb = eval_val(
-        args,
-        compiled_loss,
-        val_tokens,
-        base_bytes_lut,
-        has_leading_space_lut,
-        is_boundary_token_lut,
-        log_fn=log,
-    )
-    q_eval_ms = 1000.0 * (time.perf_counter() - q_t0)
-    log(f"final_int8_zlib_roundtrip val_loss:{q_val_loss:.4f} val_bpb:{q_val_bpb:.4f} eval_time:{q_eval_ms:.0f}ms")
-    log(f"final_int8_zlib_roundtrip_exact val_loss:{q_val_loss:.8f} val_bpb:{q_val_bpb:.8f}")
+    if not args.skip_val:
+        q_t0 = time.perf_counter()
+        q_val_loss, q_val_bpb = eval_val(
+            args,
+            compiled_loss,
+            val_tokens,
+            base_bytes_lut,
+            has_leading_space_lut,
+            is_boundary_token_lut,
+            log_fn=log,
+        )
+        q_eval_ms = 1000.0 * (time.perf_counter() - q_t0)
+        log(f"final_int8_zlib_roundtrip val_loss:{q_val_loss:.4f} val_bpb:{q_val_bpb:.4f} eval_time:{q_eval_ms:.0f}ms")
+        log(f"final_int8_zlib_roundtrip_exact val_loss:{q_val_loss:.8f} val_bpb:{q_val_bpb:.8f}")
+    else:
+        log("skipping_validation: SKIP_VAL=1")
 
 
 if __name__ == "__main__":
