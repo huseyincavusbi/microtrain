@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+*.egg-info
+
+# Virtual environment
+.venv/
+
+# Data (large binary files, downloaded)
+data/datasets/
+data/tokenizers/
+data/*.bin
+data/*.model
+data/*.vocab
+data/manifest.json
+
+# Training artifacts
+logs/
+*.npz
+*.ptz
+
+# OS
+.DS_Store
