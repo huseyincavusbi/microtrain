@@ -64,6 +64,7 @@ class Hyperparameters:
     # Disable on 32GB+ unified memory for better throughput (MLX_EAGER_EVAL=0).
     mlx_eager_eval: bool = bool(int(os.environ.get("MLX_EAGER_EVAL", "1")))
     skip_val: bool = bool(int(os.environ.get("SKIP_VAL", "0")))
+    val_max_tokens: int = int(os.environ.get("VAL_MAX_TOKENS", "0"))
     warmup_steps: int = int(os.environ.get("WARMUP_STEPS", 20))
     warmdown_iters: int = int(os.environ.get("WARMDOWN_ITERS", 1200))
     max_wallclock_seconds: float = float(os.environ.get("MAX_WALLCLOCK_SECONDS", 600.0))
@@ -780,6 +781,9 @@ def eval_val(
         )
     val_batch_seqs = val_batch_tokens // args.train_seq_len
     total_seqs = (val_tokens.size - 1) // args.train_seq_len
+    if args.val_max_tokens > 0:
+        max_seqs = args.val_max_tokens // args.train_seq_len
+        total_seqs = min(total_seqs, max_seqs)
     total_batches = max((total_seqs + val_batch_seqs - 1) // val_batch_seqs, 1)
     total_loss_sum = 0.0
     total_tokens = 0.0
