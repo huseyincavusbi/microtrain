@@ -95,6 +95,7 @@ class Hyperparameters:
     muon_backend_steps: int = int(os.environ.get("MUON_BACKEND_STEPS", 5))
     muon_momentum_warmup_start: float = float(os.environ.get("MUON_MOMENTUM_WARMUP_START", 0.85))
     muon_momentum_warmup_steps: int = int(os.environ.get("MUON_MOMENTUM_WARMUP_STEPS", 500))
+    weight_decay: float = float(os.environ.get("WEIGHT_DECAY", 0.0))
     grad_clip_norm: float = float(os.environ.get("GRAD_CLIP_NORM", 0.0))
 
     out_dir: str = os.environ.get("OUT_DIR", "logs")
@@ -481,7 +482,10 @@ class Muon:
             g_eff = g + momentum * buf
             g_ortho = zeropower_newtonschulz5(g_eff, self.args.muon_backend_steps)
             scale = math.sqrt(max(1.0, float(p.shape[0]) / float(p.shape[1])))
-            out[k] = p - lr * (g_ortho * scale).astype(p.dtype)
+            update = lr * (g_ortho * scale).astype(p.dtype)
+            if self.args.weight_decay > 0:
+                update = update + lr * self.args.weight_decay * p.astype(update.dtype)
+            out[k] = p - update
         return out
 
 
@@ -523,6 +527,13 @@ class SplitOptimizers:
         params = dict(tree_flatten(model.parameters()))
         grads = dict(tree_flatten(grads_tree))
         updated = dict(params)
+
+        if self.args.weight_decay > 0:
+            embed_wd = self.args.tied_embed_lr * lr_mul * self.args.weight_decay
+            params[self.embed_key] = (1 - embed_wd) * params[self.embed_key]
+            scalar_wd = self.args.scalar_lr * lr_mul * self.args.weight_decay
+            for k in self.scalar_keys:
+                params[k] = (1 - scalar_wd) * params[k]
 
         updated.update(self.muon.step(params, grads, step=step, lr_mul=lr_mul))
 
