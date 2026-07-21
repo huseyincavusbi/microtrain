@@ -83,6 +83,7 @@ class Hyperparameters:
     logit_softcap: float = float(os.environ.get("LOGIT_SOFTCAP", 30.0))
     rope_base: float = float(os.environ.get("ROPE_BASE", 10000.0))
     qk_gain_init: float = float(os.environ.get("QK_GAIN_INIT", 1.5))
+    depth_recurrence: int = int(os.environ.get("DEPTH_RECURRENCE", 0))
 
     # Optimizer. We keep the same per-group defaults as train_gpt.py.
     beta1: float = float(os.environ.get("BETA1", 0.9))
@@ -390,7 +391,7 @@ class GPT(nn.Module):
     # - tied embeddings for the LM head (the baseline default setup)
     def __init__(self, vocab_size: int, num_layers: int, dim: int, num_heads: int, num_kv_heads: int, mlp_mult: int,
                  logit_chunk_tokens: int, logit_softcap: float, rope_base: float, tied_embed_init_std: float,
-                 qk_gain_init: float):
+                 qk_gain_init: float, depth_recurrence: int = 0):
         super().__init__()
         if logit_softcap <= 0.0:
             raise ValueError(f"logit_softcap must be positive, got {logit_softcap}")
@@ -400,6 +401,7 @@ class GPT(nn.Module):
         self.tok_emb = nn.Embedding(vocab_size, dim)
         self.num_encoder_layers = num_layers // 2
         self.num_decoder_layers = num_layers - self.num_encoder_layers
+        self.depth_recurrence = depth_recurrence
         self.num_skip_weights = min(self.num_encoder_layers, self.num_decoder_layers)
         self.skip_weights = mx.ones((self.num_skip_weights, dim), dtype=mx.float32)
         self.blocks = [
@@ -427,13 +429,18 @@ class GPT(nn.Module):
         for i in range(self.num_encoder_layers):
             x = self.blocks[i](x, x0)
             skips.append(x)
+        n_recur = min(self.depth_recurrence, self.num_decoder_layers)
+        recur_from = self.num_decoder_layers - n_recur
         for i in range(self.num_decoder_layers):
             # Odd layer counts have one more decoder block than encoder block. The baseline only
             # applies a skip connection when one exists, then runs the remaining decoder block(s)
             # without an added skip.
             if skips:
                 x = x + self.skip_weights[i].astype(x.dtype)[None, None, :] * skips.pop()
-            x = self.blocks[self.num_encoder_layers + i](x, x0)
+            block = self.blocks[self.num_encoder_layers + i]
+            x = block(x, x0)
+            if i >= recur_from:
+                x = block(x, x0)
         return self.final_norm(x)
 
     def loss(self, input_ids: mx.array, target_ids: mx.array) -> mx.array:
@@ -914,6 +921,7 @@ def main() -> None:
         rope_base=args.rope_base,
         tied_embed_init_std=args.tied_embed_init_std,
         qk_gain_init=args.qk_gain_init,
+        depth_recurrence=args.depth_recurrence,
     )
     opt = SplitOptimizers(model, args)
 
@@ -951,7 +959,8 @@ def main() -> None:
     log(
         f"model_params:{n_params} vocab_size:{args.vocab_size} layers:{args.num_layers} "
         f"dim:{args.model_dim} heads:{args.num_heads} kv_heads:{args.num_kv_heads} "
-        f"seq_len:{args.train_seq_len} tie_embeddings:{args.tie_embeddings}"
+        f"seq_len:{args.train_seq_len} tie_embeddings:{args.tie_embeddings} "
+        f"depth_recurrence:{args.depth_recurrence}"
     )
     log(
         f"iterations:{args.iterations} train_batch_tokens:{args.train_batch_tokens} grad_accum_steps:{args.grad_accum_steps} "
