@@ -1,0 +1,12 @@
+# Core trainers
+mlx>=0.20          # Apple Silicon (Mac / train.py, mac/)
+torch>=2.3         # CUDA (Kaggle 2xT4 / train_cuda.py)
+
+# Data & tokenization
+numpy
+sentencepiece
+huggingface_hub
+hf_transfer        # optional, accelerates HF downloads
+
+# Logging
+wandb
