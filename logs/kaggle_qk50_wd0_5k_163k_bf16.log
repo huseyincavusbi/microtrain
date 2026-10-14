@@ -1,0 +1,5 @@
+# QK=5.0, WD=0, 5000 iterations, 163K batch, bfloat16, 2xT4
+# Kaggle notebook session — completed 2026-07-16 01:55:38
+final_int8_zlib_roundtrip val_loss:2.2004 val_bpb:1.3185
+final_int8_zlib_roundtrip_exact val_loss:2.20038554 val_bpb:1.31851259
+total_wallclock: 37946.6s (632.4min)

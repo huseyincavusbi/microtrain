@@ -1,0 +1,59 @@
+wandb:enabled
+val_bpb:enabled tokenizer_kind=sentencepiece tokenizer_path=/kaggle/working/data_local/tokenizers/fineweb_1024_bpe.model
+train_loader:dataset:fineweb10B_sp1024 train_shards:10
+val_loader:shards pattern=/kaggle/working/data_local/datasets/fineweb10B_sp1024/fineweb_val_*.bin tokens:62021632
+model_params:17059912
+world_size:2 grad_accum_steps:4
+sdp_backend:mem_efficient
+attention_mode:gqa num_heads:8 num_kv_heads:4
+tie_embeddings:True embed_lr:0.05 head_lr:0.0 matrix_lr:0.04 scalar_lr:0.04
+train_batch_tokens:327680 train_seq_len:1024 iterations:10 warmup_steps:20 max_wallclock_seconds:0.000
+skip_val:False val_max_tokens:2000000 val_log_every:25 weight_decay:0.04
+seed:1337
+warmup_step:1/20
+warmup_step:2/20
+warmup_step:3/20
+warmup_step:4/20
+warmup_step:5/20
+warmup_step:6/20
+warmup_step:7/20
+warmup_step:8/20
+warmup_step:9/20
+warmup_step:10/20
+warmup_step:11/20
+warmup_step:12/20
+warmup_step:13/20
+warmup_step:14/20
+warmup_step:15/20
+warmup_step:16/20
+warmup_step:17/20
+warmup_step:18/20
+warmup_step:19/20
+warmup_step:20/20
+val_progress:1/25
+val_progress:25/25
+step:0/10 val_loss:6.9346 val_bpb:4.1553 train_time:0ms step_avg:0.02ms
+step:1/10 train_loss:6.9356 train_time:2805ms step_avg:2804.91ms
+step:2/10 train_loss:6.9006 train_time:5640ms step_avg:2820.19ms
+step:3/10 train_loss:9.8043 train_time:8495ms step_avg:2831.58ms
+step:4/10 train_loss:12.7975 train_time:11396ms step_avg:2849.11ms
+step:5/10 train_loss:20.4559 train_time:14312ms step_avg:2862.46ms
+step:6/10 train_loss:20.1087 train_time:17234ms step_avg:2872.36ms
+step:7/10 train_loss:21.8637 train_time:20159ms step_avg:2879.85ms
+step:8/10 train_loss:24.7149 train_time:23077ms step_avg:2884.57ms
+step:9/10 train_loss:24.7055 train_time:26002ms step_avg:2889.11ms
+step:10/10 train_loss:24.3759 train_time:28920ms step_avg:2892.03ms
+val_progress:1/25
+val_progress:25/25
+step:10/10 val_loss:24.1329 val_bpb:14.4609 train_time:28959ms step_avg:2895.86ms
+peak memory allocated: 8767 MiB reserved: 9060 MiB
+Serialized model: 67224983 bytes
+Code size: 55323 bytes
+Total submission size: 67280306 bytes
+Serialized model int8+zlib: 4995640 bytes (payload:17178912 raw_torch:17224025 payload_ratio:3.91x)
+Total submission size int8+zlib: 5050963 bytes
+val_progress:1/25
+val_progress:25/25
+final_int8_zlib_roundtrip val_loss:24.5909 val_bpb:14.7353 eval_time:35659ms
+final_int8_zlib_roundtrip_exact val_loss:24.59088764 val_bpb:14.73532449
+total_wallclock: 139.2s (2.3min)

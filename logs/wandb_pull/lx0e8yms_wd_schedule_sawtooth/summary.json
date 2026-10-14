@@ -1,0 +1,1 @@
+{'step': 5000, '_step': 5006, '_wandb': {'runtime': 38063}, 'lr_mul': 0.0008333333333333334, 'val_bpb': 1.312040382388675, '_runtime': 38063, 'val_loss': 2.1895844677565224, '_timestamp': 1785195153.625697, 'train_loss': 2.2530040740966797, 'train_time_s': 37660.64019656, 'final_val_bpb': 1.3155035239564463, 'final_val_loss': 2.1953638942804448, 'quantized_model_mb': 15.017947}

@@ -1,0 +1,1 @@
+{'step': 5000, '_step': 5005, '_wandb': {'runtime': 40305}, 'lr_mul': '__main__.main.<locals>.lr_mul', 'val_bpb': 0.0024113199832587577, '_runtime': 40305, 'val_loss': 0.004024105395690652, '_timestamp': 1784733144.2099702, 'train_loss': 0.004167628474533558, 'train_time_s': 39884.610080401006}

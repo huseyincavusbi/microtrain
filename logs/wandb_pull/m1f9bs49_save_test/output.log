@@ -1,0 +1,31 @@
+wandb:enabled
+Traceback (most recent call last):
+  File "/kaggle/working/train_cuda.py", line 1343, in <module>
+    main()
+  File "/kaggle/working/train_cuda.py", line 994, in main
+    sp = spm.SentencePieceProcessor(model_file=args.tokenizer_path)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/sentencepiece/__init__.py", line 468, in Init
+    self.Load(model_file=model_file, model_proto=model_proto)
+  File "/usr/local/lib/python3.12/dist-packages/sentencepiece/__init__.py", line 961, in Load
+    return self.LoadFromFile(model_file)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/sentencepiece/__init__.py", line 316, in LoadFromFile
+    return _sentencepiece.SentencePieceProcessor_LoadFromFile(self, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: Not found: "./data/tokenizers/fineweb_1024_bpe.model": No such file or directory Error #2
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/kaggle/working/train_cuda.py", line 1343, in <module>
+[rank0]:     main()
+[rank0]:   File "/kaggle/working/train_cuda.py", line 994, in main
+[rank0]:     sp = spm.SentencePieceProcessor(model_file=args.tokenizer_path)
+[rank0]:          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/sentencepiece/__init__.py", line 468, in Init
+[rank0]:     self.Load(model_file=model_file, model_proto=model_proto)
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/sentencepiece/__init__.py", line 961, in Load
+[rank0]:     return self.LoadFromFile(model_file)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/sentencepiece/__init__.py", line 316, in LoadFromFile
+[rank0]:     return _sentencepiece.SentencePieceProcessor_LoadFromFile(self, arg)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]: OSError: Not found: "./data/tokenizers/fineweb_1024_bpe.model": No such file or directory Error #2

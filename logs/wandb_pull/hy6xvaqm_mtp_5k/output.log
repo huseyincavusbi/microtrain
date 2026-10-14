@@ -1,0 +1,28 @@
+wandb:enabled
+val_bpb:enabled tokenizer_kind=sentencepiece tokenizer_path=/kaggle/working/data_local/tokenizers/fineweb_1024_bpe.model
+train_loader:dataset:fineweb10B_sp1024 train_shards:10
+val_loader:shards pattern=/kaggle/working/data_local/datasets/fineweb10B_sp1024/fineweb_val_*.bin tokens:62021632
+Traceback (most recent call last):
+  File "/kaggle/working/train_cuda.py", line 1363, in <module>
+    main()
+  File "/kaggle/working/train_cuda.py", line 1027, in main
+    base_model = GPT(
+                 ^^^^
+  File "/kaggle/working/train_cuda.py", line 864, in __init__
+    self._init_weights()
+    ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1965, in __getattr__
+    raise AttributeError(
+AttributeError: 'GPT' object has no attribute '_init_weights'. Did you mean: 'skip_weights'?
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/kaggle/working/train_cuda.py", line 1363, in <module>
+[rank0]:     main()
+[rank0]:   File "/kaggle/working/train_cuda.py", line 1027, in main
+[rank0]:     base_model = GPT(
+[rank0]:                  ^^^^
+[rank0]:   File "/kaggle/working/train_cuda.py", line 864, in __init__
+[rank0]:     self._init_weights()
+[rank0]:     ^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1965, in __getattr__
+[rank0]:     raise AttributeError(
+[rank0]: AttributeError: 'GPT' object has no attribute '_init_weights'. Did you mean: 'skip_weights'?
