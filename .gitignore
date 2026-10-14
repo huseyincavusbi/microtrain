@@ -17,7 +17,6 @@ data/*.vocab
 data/manifest.json
 
 # Training artifacts
-logs/
 *.npz
 *.ptz
 
