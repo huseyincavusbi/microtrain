@@ -66,7 +66,9 @@ pip install -r requirements.txt
 
 ## Running
 
-**CUDA** Open any notebook in `experiments/` on Kaggle with the
+**CUDA**
+
+Open any notebook in `experiments/` on Kaggle with the
 `microtrain-fineweb-sp1024` dataset attached, or run the trainer directly:
 
 ```bash
